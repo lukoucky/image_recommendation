@@ -4,7 +4,7 @@ services:
     build: .
     env_file: database.env
     ports:
-      - 5000:5000
+      - 5555:5555
     volumes:
       - ./backend/:/home/backend/
     depends_on:

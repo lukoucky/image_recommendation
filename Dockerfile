@@ -13,6 +13,6 @@ RUN apk add --no-cache postgresql-dev gcc python3 python3-dev musl-dev && \
 ADD ./backend /home/backend/
 WORKDIR /home/backend/
 
-EXPOSE 5000
+EXPOSE 5555
 
 ENTRYPOINT ["python3", "app.py"]
