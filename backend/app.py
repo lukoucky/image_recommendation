@@ -25,7 +25,8 @@ def home():
     # TODO: Replace list dir with call search for similar images
     imgs = []
     for img_path in os.listdir('images'):
-        imgs.append(ImageData(img_path, 0.2342))
+        if allowed_file(img_path):
+            imgs.append(ImageData(img_path, 0.2342))
     n = len(imgs)//4
     all_imgs = [imgs[0:n], imgs[n:2*n], imgs[2*n:3*n], imgs[3*n:]]
     return render_template('show_all.html', imgs=all_imgs)
