@@ -10,16 +10,24 @@
 <body>
 
 <div class="header">
-    <div class="type_select">
-        <h3>Select similarity search type</h3>
-        <label>
-        <input type="checkbox" />ImageNet</label>
-        <label>
-        <input type="checkbox" />Color</label>
-        <label>
-        <input type="checkbox" />Text</label>
+    <div class="wrapper">
+        <div class="left_div">
+            <div class="type_select">
+                <h3>Select similarity search type</h3>
+                <label>
+                <input type="checkbox" />ImageNet</label>
+                <label>
+                <input type="checkbox" />Color</label>
+                <label>
+                <input type="checkbox" />Text</label>
+            </div>
+            <div class="droparea">Drop Image Here</div>
+        </div>
+        <div class="right_div">
+            <img class='similar_image' src="/img/{{ new_img }}">
+        </div>
     </div>
-    <div class="droparea">Drop Image Here</div>
+     <p>Number bellow following images show how simmilar are the to this one. (Lower number = more similar)</p>
 </div>
 
 <div class="row">

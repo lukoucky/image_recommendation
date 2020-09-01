@@ -1,11 +1,7 @@
 $(function(){
-
-    var fileUploadSuccess = function(data){
-        // window.location.reload(false); 
-    };
-
     var reloadPage = function(data){
-        window.location.reload(false); 
+        // window.location.reload(false); 
+        // window.location.href = '/show_similar/'+data;  
     };
 
     var fileUploadFail = function(data){};
@@ -21,19 +17,18 @@ $(function(){
         var formData = new FormData();
         formData.append("file2upload", files[0]);
 
-        var req = {
-            url: "/sendfile",
-            method: "post",
+        $.ajax({ 
+            type:'POST',
+            url: '/sendfile',
+            data : formData,
             processData: false,
             contentType: false,
-            data: formData
-        };
-
-        var promise = $.ajax(req);
-        promise.then(reloadPage, fileUploadFail);
+            success: function(response) {
+                console.log(response);
+                window.location.href = '/show_similar/'+response.image_name;
+            }
+        });
     };
-
-
 
     var dropHandlerSet = {
         dragover: dragHandler,
@@ -41,8 +36,6 @@ $(function(){
     };
 
     $(".droparea").on(dropHandlerSet);
-
-    fileUploadSuccess(false); // called to ensure that we have initial data
 });
 
 $('input[type="checkbox"]').on('change', function() {

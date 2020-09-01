@@ -47,7 +47,8 @@ body {
 .column img {
   margin-top: 8px;
   vertical-align: middle;
-  width: 100%;
+  object-fit: cover;
+  width:100%;
 }
 
 /* Responsive layout - makes a two column-layout instead of four columns */
@@ -68,7 +69,23 @@ body {
   }
 }
 
-img {
-  object-fit: cover;
-  width:100%;
+.similar_image
+{
+    height: auto; 
+    width: auto; 
+    max-width: 250px; 
+    max-height: 250px;
+}
+
+.wrapper {
+    width: 800px;
+    overflow: hidden; /* will contain if #first is longer than #second */
+}
+.left_div {
+    width: 220px;
+    float:left; /* add this */
+}
+.right_div {
+    margin-left: 100px;
+    overflow: hidden; /* if you don't want #second to wrap below #first */
 }
