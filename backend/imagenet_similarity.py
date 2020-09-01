@@ -25,8 +25,9 @@ def findDifference(f1, f2):
 def findDifferences(feature_vectors, image_name):
     similar: dict = {}
     for k, v in feature_vectors.items():
-        diff=findDifference(feature_vectors[k],feature_vectors[image_name])
-        similar[k] = diff
+        if not (k == image_name):
+            diff=findDifference(feature_vectors[k],feature_vectors[image_name])
+            similar[k] = diff
     return similar 
 
 def compute_similarity(image_name):
@@ -35,8 +36,8 @@ def compute_similarity(image_name):
     print('compute_similarity for image', image_name)
     feature_vectors: dict = {}
     model = ResNet50(weights='imagenet')
-    for i, img_path in enumerate(get_all_images_in_dir(img_dir)):
-            feature_vectors[img_path] = predict(join(img_dir,img_path),model)[0]
+    for i, img_path in enumerate(get_all_images_in_dir(img_dir, True)):
+            feature_vectors[img_path] = predict(img_path,model)[0]
 
     results=findDifferences(feature_vectors, image_name)
     print(results)
