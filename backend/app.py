@@ -1,7 +1,9 @@
 import os
 from flask import Flask, render_template, flash, redirect, request, url_for, send_from_directory, jsonify
-from db_model import setup_db, students
+from db_model import setup_db, Image
 from werkzeug.utils import secure_filename
+from utils import is_image, get_all_images_in_dir
+from imagenet_similarity import compute_similarity, predict_resnet50
 from image_data import ImageData
 import time
 
@@ -11,7 +13,6 @@ DBNAME = os.environ['POSTGRES_DB']
 DBPORT = '5432'
 
 UPLOAD_FOLDER = 'images'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'tiff'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -20,16 +21,22 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'strv'
 setup_db(app)
 
+def get_all_images(dirpath, imgs = None):
+    if imgs is None:
+        imgs = get_all_images_in_dir(dirpath)
+
+    image_data = []
+    for img in imgs:
+        image_data.append(ImageData(img, 0.2342))
+
+    n = len(image_data)//4
+    all_imgs = [image_data[0:n], image_data[n:2*n], image_data[2*n:3*n], image_data[3*n:]]
+    return all_imgs
+
 @app.route('/', methods=['GET'])
 def home():
     # TODO: Replace list dir with call search for similar images
-    imgs = []
-    for img_path in os.listdir('images'):
-        if allowed_file(img_path):
-            imgs.append(ImageData(img_path, 0.2342))
-    n = len(imgs)//4
-    all_imgs = [imgs[0:n], imgs[n:2*n], imgs[2*n:3*n], imgs[3*n:]]
-    return render_template('show_all.html', imgs=all_imgs)
+    return render_template('show_all.html', imgs=get_all_images('images'))
 
 @app.route('/img/<path:filename>')
 def send_img(filename):
@@ -41,14 +48,11 @@ def send_static(filename):
     print('send file with path:', filename)
     return send_from_directory('static', filename)
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 @app.route("/sendfile", methods=["POST"])
 def send_file():
     fileob = request.files["file2upload"]
     filename = secure_filename(fileob.filename)
-    if allowed_file(filename):
+    if is_image(filename):
         save_path = "{}/{}_{}".format(app.config["UPLOAD_FOLDER"], time.time(), filename)
         fileob.save(save_path)
 
@@ -56,7 +60,17 @@ def send_file():
         with open(save_path, "r") as f:
             pass
 
-        return "successful_upload"
+        # TODO: 1) Compute features 2) Save to DB 3) Return all images with similarity
+        print('Compute features for',save_path)
+        features = predict_resnet50(save_path)
+        try:
+            img = Image(save_path, features[0].tolist())
+            img.insert()
+        except Exception as e:
+            print(e)
+
+        # compute_similarity(save_path)
+        return render_template('show_all.html', imgs=get_all_images('images'))
     else:
         return "unsupported file"
 

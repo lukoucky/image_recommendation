@@ -1,4 +1,5 @@
 import time
+import numpy as np
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -21,28 +22,26 @@ def setup_db(app):
     database_initialization_sequence()
 
 
-class students(db.Model):
-    id = db.Column('student_id', db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    city = db.Column(db.String(50))
-    addr = db.Column(db.String(200))
+class Image(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String())
+    imagenet_fetures = db.Column(db.ARRAY(db.Float()))
 
-    def __init__(self, name, city, addr):
+    def __init__(self, name, imagenet_fetures):
         self.name = name
-        self.city = city
-        self.addr = addr
+        self.imagenet_fetures = imagenet_fetures
 
     def insert(self):
         db.session.add(self)
         db.session.commit()
 
+    def __repr__(self):
+        return f'{self.name}[{self.imagenet_fetures[0]}, {self.imagenet_fetures[1]}, {self.imagenet_fetures[2]}, ...]'
 
 def database_initialization_sequence():
     db.create_all()
-    test_rec = students(
-            'John Doe',
-            'Los Angeles',
-            '123 Foobar Ave')
+    features = np.random.rand(1000)
+    test_rec = Image('test_img',features)
 
     db.session.add(test_rec)
     db.session.rollback()
