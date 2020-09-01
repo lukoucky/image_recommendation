@@ -1,8 +1,11 @@
 $(function(){
 
     var fileUploadSuccess = function(data){
-        var url = "/filenames";
-        var promise = $.get(url);
+        // window.location.reload(false); 
+    };
+
+    var reloadPage = function(data){
+        window.location.reload(false); 
     };
 
     var fileUploadFail = function(data){};
@@ -27,8 +30,10 @@ $(function(){
         };
 
         var promise = $.ajax(req);
-        promise.then(fileUploadSuccess, fileUploadFail);
+        promise.then(reloadPage, fileUploadFail);
     };
+
+
 
     var dropHandlerSet = {
         dragover: dragHandler,
