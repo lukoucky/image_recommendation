@@ -36,6 +36,7 @@ def get_all_images(dirpath, imgs = None):
             image_data.append(ImageData(os.path.basename(img_path), similarity)) 
         image_data = sorted(image_data, key=lambda x: x.similarity, reverse=False)
     
+    image_data = image_data[0:30]
     n = len(image_data)//4
     if len(image_data)%4 > 1:
         n += 1
