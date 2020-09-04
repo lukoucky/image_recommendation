@@ -6,3 +6,6 @@ keras
 pillow
 dataclasses
 scikit-learn
+jupyterlab
+matplotlib
+pixellib
