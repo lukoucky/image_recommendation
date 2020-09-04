@@ -6,8 +6,8 @@
 ### Ignore all in backend/images except .gitkeep
 backend/images/*.*
 !backend/images/.gitkeep
-
-
+backend/val2017/*.*
+*.pickle
 
 ### Flask ###
 instance/*
