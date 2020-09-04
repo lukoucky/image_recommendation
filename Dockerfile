@@ -9,5 +9,6 @@ ADD ./backend /home/backend/
 WORKDIR /home/backend/
 
 EXPOSE 5555
+EXPOSE 8888
 
 ENTRYPOINT ["python3", "app.py"]

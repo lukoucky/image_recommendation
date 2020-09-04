@@ -5,6 +5,7 @@ services:
     env_file: database.env
     ports:
       - 5555:5555
+      - 8888:8888
     volumes:
       - ./backend/:/home/backend/
     depends_on:
