@@ -7,6 +7,11 @@ import os
 
 
 class Dataset:
+    '''
+    Helper class for image dataset. Used mainly during initial implementation and debugging. 
+    Holds information about dataset, export features to and from pickles
+    and plots images. 
+    '''
     # List of allowed image file extensions
     ALLOWED_IMG_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'tiff']
 
@@ -205,8 +210,16 @@ class Dataset:
             ax.imshow(img)
             ax.axis('off')
         plt.show()
-        
-    def get_similar_images(self, image_name):
+
+    def get_objects_on_image(self, image_name):
+        objects = dict()
+        feature = self.get_features_for_image(image_name)
+        for category, score in enumerate(feature):
+            if score > 0:
+                objects[self.model.categories[category]] = score
+        return objects
+                
+    def get_similar_images(self, image_name, n=10):
         '''
         For given image_name returns most simailar images in dataset.
         :param image_name: Image name of searched image
@@ -219,7 +232,7 @@ class Dataset:
         my_features = feature_dict[image_name]
         feature_list = list(feature_dict.values())
 
-        neighbors = NearestNeighbors(n_neighbors=9, algorithm='brute', metric='euclidean').fit(feature_list)
+        neighbors = NearestNeighbors(n_neighbors=n, algorithm='brute', metric='euclidean').fit(feature_list)
         distances, indices = neighbors.kneighbors([my_features])
         names = self.get_image_names()
         
