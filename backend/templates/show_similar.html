@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Image similarity</title>
+    <title>Image similarity search</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -9,54 +9,53 @@
 </head>
 <body>
 
-<div class="header">
+<header id="header">
+    <h1>Image similarity search</h1>
     <div class="wrapper">
         <div class="left_div">
-            <div class="type_select">
-                <h3>Select similarity search type</h3>
-                <label>
-                <input type="checkbox" />ImageNet</label>
-                <label>
-                <input type="checkbox" />Color</label>
-                <label>
-                <input type="checkbox" />Text</label>
-            </div>
             <div class="droparea">Drop Image Here</div>
         </div>
         <div class="right_div">
-            <img class='similar_image' src="/img/{{ new_img }}">
+            <img src="{{ new_img }}">
+        </div>
+        <div class="right_div">
+            <p>Image contains objecs<br> with following probabilities:</p>
+            <p>
+            {% for name in objects.keys() %}
+                {{ name + " %.2f"|format(100*objects[name]) }}&#37;<br>
+            {% endfor %}
+            </p>
         </div>
     </div>
-     <p>Number bellow following images show how simmilar are they to this one. (Lower number = more similar)</p>
-</div>
+    <p>or click on button and see random one</p>
+    <a href="/get_random_image"><button type="button">Random image</button></a>
+    <p>or click on any image bellow to see similar images.</p>
+    <a href='https://github.com/lukoucky/image_recommendation'><img class='img_github' src="/static/GitHub-Mark-Light-32px.png"></a>
+</header>
+
 
 <div class="row">
     <div class="column">
-    	{% for data in imgs[0] %}
-    		<img src="/img/{{ data.img }}">
-    		{{ data.similarity }}
-    	{% endfor %}
-    </div>
-	<div class="column">
-    	{% for data in imgs[1] %}
-    		<img src="/img/{{ data.img }}">
-    		{{ data.similarity }}
-    	{% endfor %}
+        {% for data in imgs[0] %}
+            <a href='/predict_similar/{{ data.img }}'><img src="/image/{{ data.img }}"></a>
+        {% endfor %}
     </div>
     <div class="column">
-    	{% for data in imgs[2] %}
-    		<img src="/img/{{ data.img }}">
-    		{{ data.similarity }}
-    	{% endfor %}
+        {% for data in imgs[1] %}
+            <a href='/predict_similar/{{ data.img }}'><img src="/image/{{ data.img }}"></a>
+        {% endfor %}
     </div>
-	<div class="column">
-    	{% for data in imgs[3] %}
-    		<img src="/img/{{ data.img }}">
-    		{{ data.similarity }}
-    	{% endfor %}
+    <div class="column">
+        {% for data in imgs[2] %}
+            <a href='/predict_similar/{{ data.img }}'><img src="/image/{{ data.img }}"></a>
+        {% endfor %}
+    </div>
+    <div class="column">
+        {% for data in imgs[3] %}
+            <a href='/predict_similar/{{ data.img }}'><img src="/image/{{ data.img }}"></a>
+        {% endfor %}
     </div>
 </div>
-
 <script src="/static/app.js">
 </script>
 </body>

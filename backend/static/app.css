@@ -3,11 +3,9 @@
     height: 200px;
     border-style: solid;
     border-width: 3px;
-    border-color: red;
+    border-color: #c30928;
     line-height: 200px;
     text-align: center;
-    margin-left: 40%;
-    margin-top: 20px;
 }
 
 * {
@@ -15,25 +13,50 @@
 }
 
 body {
-  margin: 0;
-  font-family: Arial;
+  margin: 0 auto;
+  font-family: "Helvetica", "Arial", sans-serif;
+  color: #fff;
+  background-color: #f5f5f5;
 }
 
-.header {
+h1,
+strong {
+  color: #fff;
+}
+
+header {
+  background-color: #111517;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: cover;
+  line-height: 1.2;
+  padding: 1vw 2em;
   text-align: center;
-  padding: 32px;
 }
 
-.type_select {
-    margin-left: 20px;
+button {
+  border: none;
+  color: white;
+  padding: 16px;
+  width: 200px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  transition-duration: 0.2s;
+  cursor: pointer;
+  background-color: #c30928;
 }
 
 .row {
   display: -ms-flexbox; /* IE10 */
   display: flex;
+  margin: 0 auto;
   -ms-flex-wrap: wrap; /* IE10 */
   flex-wrap: wrap;
-  padding: 0 4px;
+  max-width: 50em;
+  padding: 0 2px;
 }
 
 /* Create four equal columns that sits next to each other */
@@ -41,14 +64,20 @@ body {
   -ms-flex: 25%; /* IE10 */
   flex: 25%;
   max-width: 25%;
-  padding: 0 4px;
+  padding: 0 2px;
 }
 
 .column img {
-  margin-top: 8px;
+  margin-top: 4px;
   vertical-align: middle;
   object-fit: cover;
   width:100%;
+}
+
+.img_github {
+  right: 5px;
+  top: 5px;
+  position: fixed;
 }
 
 /* Responsive layout - makes a two column-layout instead of four columns */
@@ -78,14 +107,17 @@ body {
 }
 
 .wrapper {
-    width: 800px;
-    overflow: hidden; /* will contain if #first is longer than #second */
+    margin: 0 auto;
 }
 .left_div {
-    width: 220px;
-    float:left; /* add this */
+    display: inline-block;
+    vertical-align: top;
 }
 .right_div {
-    margin-left: 100px;
-    overflow: hidden; /* if you don't want #second to wrap below #first */
+    margin-left: 50px;
+    display: inline-block;
+    vertical-align: top;
+}
+.right_div img {
+    height: 200px;
 }

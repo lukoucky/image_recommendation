@@ -15,21 +15,27 @@ $(function(){
         var files = evt.originalEvent.dataTransfer.files;
 
         var formData = new FormData();
-        formData.append("file2upload", files[0]);
+        formData.append("file_to_upload", files[0]);
 
         $.ajax({ 
             type:'POST',
-            url: '/sendfile',
+            url: '/upload_file',
             data : formData,
             processData: false,
             contentType: false,
             success: function(response) {
                 console.log(response);
-                window.location.href = '/show_similar/'+response.image_name;
+                window.location.href = '/predict_similar/'+response.image_name;
             }
         });
     };
 
+    var loadSimilarImages = function(data)
+    {   
+
+    };
+
+    
     var dropHandlerSet = {
         dragover: dragHandler,
         drop: dropHandler
@@ -40,4 +46,18 @@ $(function(){
 
 $('input[type="checkbox"]').on('change', function() {
    $('input[type="checkbox"]').not(this).prop('checked', false);
+});
+
+
+$(".random_img_button").on('click', function()
+{   
+    console.log('Random button clicked');
+    $.ajax({ 
+        type:'GET',
+        url: '/get_random_image',
+        success: function(response) {
+            console.log(response);
+            window.location.href = '/predict_similar/'+response.image_name;
+        }
+    });
 });
