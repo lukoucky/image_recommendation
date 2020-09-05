@@ -99,6 +99,36 @@ class Dataset:
             feature_list.append(features)
         pickle.dump(feature_list, open(self.features_pickle_filename, 'wb'))
         pickle.dump(imgs, open(self.imagenames_pickle_filename, 'wb'))
+
+    def generate_features_by_one(self):
+        '''
+        Computes featers for all images in dataset and store them in pickle - one pickle per image.
+        It expects that model is set and that folder with images exists.
+        '''
+        if not os.path.isdir(self.images_path):
+            print(f'Folder {self.images_path} does not exist. Cannot generate features.')
+            return
+    
+        if self.model is None:
+            print(f'Dataset {self.name} does not have any model set. Cannot generate features.')
+            print(f'Use set_model() method to set model with predict function.')
+            return
+
+        folder_name = f'{self.name}_pickles'
+
+        if not os.path.isdir(folder_name):
+            os.mkdir(folder_name)
+        
+        print(f'Generating features from images in {self.images_path}')
+        imgs = self.get_images_from_dir()
+        for image in imgs:
+            pickle_name = f'{folder_name}/{os.path.splitext(image)[0]}.pickle'
+            if os.path.isfile(pickle_name):
+                print(f'pickle {pickle_name} already exist - skipping')
+                continue
+            print(f'Predictiong image {image}')
+            features = self.model.predict(os.path.join(self.images_path, image))
+            pickle.dump(features, open(pickle_name, 'wb'))
         
     def get_images_from_dir(self):
         '''
