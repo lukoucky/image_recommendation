@@ -3,6 +3,13 @@ import pixellib
 
 
 class InstanceSegmentationModel:
+    '''
+    Instance segmentation of image. 
+    Using pretrained Mask R-CNN model (https://github.com/ayoolaolafenwa/PixelLib/releases/tag/1.2) on 
+    COOC dataset (https://cocodataset.org/#home).
+    Segmentation is done with PixelLib (https://pixellib.readthedocs.io/en/latest)
+    '''
+
     # Name of categories of COCO dataset objects
     categories = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
                'bus', 'train', 'truck', 'boat', 'traffic light',
@@ -21,11 +28,15 @@ class InstanceSegmentationModel:
                'teddy bear', 'hair drier', 'toothbrush']
     
     def __init__(self, weights_path):
+        '''
+        Constructor prepares segmentation model from pretrained weights
+        :param weights_path: Path to file with pretrained weights for model
+        '''
         self.weights_path = weights_path
         self.model = instance_segmentation()
         self.model.load_model(self.weights_path) 
     
-    def predict_features(self, image_path):
+    def predict(self, image_path):
         '''
         Runs instance segmentation on image located on image_path.
         :param image_path: file path of image
@@ -38,7 +49,7 @@ class InstanceSegmentationModel:
 #         return self.prepare_feature_vector_count(segmask)
         return self.prepare_feature_vector_score(segmask)
 
-    def predict(self, image_path):
+    def predict_segmentation(self, image_path):
         '''
         Runs instance segmentation on image located on image_path.
         :param image_path: file path of image
