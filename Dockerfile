@@ -5,7 +5,7 @@ WORKDIR /home/backend/
 
 RUN pip3 install -r requirements.txt
 RUN apt update
-RUN apt install libgl1-mesa-glx
+RUN apt install -y libgl1-mesa-glx
 
 ADD ./backend /home/backend/
 WORKDIR /home/backend/
