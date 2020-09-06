@@ -50,7 +50,9 @@ def database_initialization_sequence():
     Initialize database
     '''
     db.create_all()
-    fill_database()
+    imgs = Image.query.all()
+    if len(imgs) == 0:
+        fill_database()
 
 def fill_database():
     '''
