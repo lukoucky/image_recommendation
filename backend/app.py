@@ -9,6 +9,7 @@ from instance_segmentation_model import InstanceSegmentationModel
 from dataset import Dataset
 import random
 
+# Database access env variables
 DBUSER = os.environ['POSTGRES_USER']
 DBPASS = os.environ['POSTGRES_PASSWORD']
 DBNAME = os.environ['POSTGRES_DB']
@@ -17,9 +18,11 @@ DBPORT = '5432'
 UPLOAD_FOLDER = 'images'
 MAX_IMAGES = 60
 
+# Model and Dataset classes instance filled in main method at the bottom
 data = None
 model = None
 
+# Setup flask app and connect it to database
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql+psycopg2://{DBUSER}:{DBPASS}@db:{DBPORT}/{DBNAME}'
@@ -27,11 +30,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'strv'
 setup_db(app)
 
-# TODO: Add some limit to number of sent pictures
 def get_all_images(dirpath, imgs = None):
-
+    '''
+    Prepares images for display in 4 columns on web page
+    :param dirpath: Path to folder with images
+    :param imgs: List of images. Optional parameter. If set images are taken from this list.
+                 If not images are taken from dirpath
+    :return: List with four items - each item is another list with almost the same number of images.
+    '''
     image_data = []
-
     if imgs is None:
         imgs = get_all_images_in_dir(dirpath)
         random.shuffle(imgs)
@@ -51,7 +58,9 @@ def get_all_images(dirpath, imgs = None):
 
 @app.route('/', methods=['GET'])
 def home():
-    # TODO: Replace list dir with call search for similar images
+    '''
+    Endpoint for index page. Shows random images from database.
+    '''
     return render_template('show_all.html', imgs=get_all_images('images'))
 
 @app.route('/image/<path:filename>')
@@ -75,7 +84,7 @@ def send_static(filename):
 @app.route("/upload_file", methods=["POST"])
 def upload_file():
     """
-    Endpoint for image uploading. Expects request with field 'file_to_upload'
+    API Endpoint for image uploading. Expects request with field 'file_to_upload'
     that contains image. If the file is image it is saved, features are extracted 
     and stored in database.
     :return: JSON with name of image in backend database
@@ -104,30 +113,52 @@ def upload_file():
         # TODO: Inform about error
         return jsonify({ 'image_name': '/' })
 
+@app.route('/get_similar/<path:file_name>', methods=['GET'])
+def get_similar(file_name):
+    '''
+    API Endpoint for similarity search. Expects name of image already in datase.
+    :param filename: Name of image that is alreade processed in database
+    :return: JSON with list of similar images and objects found on selected image
+    '''
+    images, objects = predict_similar_images(file_name)
+    obj_dict = {}
+    for obj in objects.keys():
+        obj_dict[obj] = float(objects[obj])
+    return jsonify({ 'images' : list(images.keys()), 'objects' : obj_dict })
+
 @app.route('/predict_similar/<path:file_name>', methods=['GET'])
 def predict_similar(file_name):
     '''
     Endpoint for similarity search. Expects name of image already in datase.
     :param filename: Name of image that is alreade processed in database
-    :return: JSON with filenames of simmilar images
+    Returns webpage with similarity prediction for selected image
     '''
-    objects = data.get_objects_on_image(file_name)
-    images = data.get_similar_images(file_name, MAX_IMAGES)
-    print('similar images')
-    print(images)
+    images, objects = predict_similar_images(file_name)
     return render_template('show_similar.html', imgs=get_all_images('images', images), new_img=f'/image/{file_name}', objects=objects)
 
 
-@app.route('/get_random_image', methods=['GET'])
-def get_random_image():
+@app.route('/predict_random_image', methods=['GET'])
+def predict_random_image():
     '''
     Returns webpage with similarity prediction for random image from database
     '''
     img = data.get_random_image()
-    objects = data.get_objects_on_image(img)
-    images = data.get_similar_images(img, MAX_IMAGES)
+    images, objects = predict_similar_images(img)
     return render_template('show_similar.html', imgs=get_all_images('images', images), new_img=f'/image/{img}', objects=objects)
 
+def predict_similar_images(image_name):
+    '''
+    Predicts similar images to image_name from database
+    :param image_name: Name of image for prediction
+    :return: Tuple with first parameter list of similar images and second objects on searched image
+    '''
+    objects = data.get_objects_on_image(image_name)
+    images = data.get_similar_images(image_name, MAX_IMAGES+1)
+    if image_name in images:
+        images.pop(image_name, None)
+    else:
+        images.pop(-1)
+    return images, objects
 
 def prepare_features_to_db(dirpath):
     imgs = get_all_images_in_dir(dirpath, True)
@@ -139,39 +170,6 @@ def prepare_features_to_db(dirpath):
         img.insert()
     pickle.dump(feature_list, open('features-2.pickle', 'wb'))
     pickle.dump(imgs, open('filenames-2.pickle','wb'))
-
-def get_differences(file_name):
-    similar: dict = {}
-    my_image = Image.query.filter(Image.name == file_name).one_or_none()
-    if my_image is None:
-        return similar
-
-    my_features = np.array(my_image.imagenet_fetures)
-
-    for image in Image.query.all():
-        if not image.name == file_name:
-            diff = np.linalg.norm(image.imagenet_fetures-my_features)
-            similar[image.name] = diff
-
-    return similar
-
-def get_NN_diff(file_name):
-    similar: dict = {}
-    my_image = Image.query.filter(Image.name == file_name).one_or_none()
-    if my_image is None:
-        return similar
-
-    my_features = np.array(my_image.imagenet_fetures)
-
-    feature_list, names = get_feature_list()
-    neighbors = NearestNeighbors(n_neighbors=20, algorithm='brute', metric='euclidean').fit(feature_list)
-    distances, indices = neighbors.kneighbors([my_features])
-
-    for i in range(len(distances[0])):
-        similar[names[indices[0][i]]] = distances[0][i]
-
-    return similar
-
 
 def get_feature_list():
     feature_list = []
