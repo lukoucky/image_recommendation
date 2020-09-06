@@ -15,6 +15,22 @@ class Dataset:
     # List of allowed image file extensions
     ALLOWED_IMG_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'tiff']
 
+    categories = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
+               'bus', 'train', 'truck', 'boat', 'traffic light',
+               'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird',
+               'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear',
+               'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie',
+               'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
+               'kite', 'baseball bat', 'baseball glove', 'skateboard',
+               'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup',
+               'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+               'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
+               'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed',
+               'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote',
+               'keyboard', 'cell phone', 'microwave', 'oven', 'toaster',
+               'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
+               'teddy bear', 'hair drier', 'toothbrush']
+
     def __init__(self, name, images_path, model=None):
         self.name = name
         self.images_path = images_path
@@ -70,6 +86,9 @@ class Dataset:
         '''
         if self.feature_dict is None:
             self.load_features()
+        if not image_name in self.feature_dict:
+            print(f'Image {image_name} is not in Database')
+            return [0]*81
         return self.feature_dict[image_name]
     
     def get_image_names(self):
@@ -216,9 +235,9 @@ class Dataset:
         feature = self.get_features_for_image(image_name)
         for category, score in enumerate(feature):
             if score > 0:
-                objects[self.model.categories[category]] = score
+                objects[self.categories[category]] = score
         return objects
-                
+
     def get_similar_images(self, image_name, n=10):
         '''
         For given image_name returns most simailar images in dataset.
@@ -229,7 +248,7 @@ class Dataset:
         similar: dict = {}
         feature_dict = self.load_features()
 
-        my_features = feature_dict[image_name]
+        my_features = self.get_features_for_image(image_name)
         feature_list = list(feature_dict.values())
 
         neighbors = NearestNeighbors(n_neighbors=n, algorithm='brute', metric='euclidean').fit(feature_list)
