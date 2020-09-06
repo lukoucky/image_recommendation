@@ -10,6 +10,7 @@ from instance_segmentation_model import InstanceSegmentationModel
 from dataset import Dataset
 import tensorflow as tf
 import random
+import pickle
 
 # Database access env variables
 DBUSER = os.environ['POSTGRES_USER']
@@ -18,7 +19,7 @@ DBNAME = os.environ['POSTGRES_DB']
 DBPORT = '5432'
 
 UPLOAD_FOLDER = 'images'
-MAX_IMAGES = 60
+MAX_IMAGES = 30
 
 # Model and Dataset classes instance filled in main method at the bottom
 data = None
@@ -91,7 +92,6 @@ def upload_file():
     and stored in database.
     :return: JSON with name of image in backend database
     """
-    print('New upload here 22')
     file_object = request.files['file_to_upload']
     filename = secure_filename(file_object.filename)
     if is_image(filename):
@@ -110,7 +110,10 @@ def upload_file():
         data.image_names.append(save_path)
         data.feature_dict[save_path] = features
         try:
-            img = Image(save_path, features)
+            f_list = [float(v) for v in features]
+            print('Saving feature list', f_list)
+            print(type(f_list[0]))
+            img = Image(save_path, f_list)
             img.insert()
         except Exception as e:
             print(e)
@@ -127,6 +130,7 @@ def get_similar(file_name):
     :param filename: Name of image that is alreade processed in database
     :return: JSON with list of similar images and objects found on selected image
     '''
+    fill_database()
     images, objects = predict_similar_images(file_name)
     obj_dict = {}
     for obj in objects.keys():
@@ -182,10 +186,21 @@ def get_feature_list():
     feature_list = []
     names = []
     for image in Image.query.all():
-        feature_list.append(image.feture_vector)
+        feature_list.append(image.feature_vector)
         names.append(image.name)
 
     return (feature_list, names)
+
+def fill_database():
+    '''
+    Helper method to populate database with precomputed features saved to pickle
+    '''
+    feature_list = pickle.load(open('features_coco_segment.pickle', 'rb'))
+    names = pickle.load(open('imagenames_coco_segment.pickle', 'rb'))
+    for i, name in enumerate(names):
+        f_list = [float(v) for v in feature_list[i]]
+        img = Image(name, f_list)
+        img.insert()
 
 if __name__ == '__main__':
     print('Setting up model and dataset')
@@ -193,4 +208,4 @@ if __name__ == '__main__':
     data = Dataset('coco_segment', '/home/backend/image', model)
     data.load_features()
     print('Running Image Segmentation backend')
-    app.run(debug=False, host='0.0.0.0', port=5555, threaded=False)
+    app.run(debug=True, host='0.0.0.0', port=5555, threaded=False)
