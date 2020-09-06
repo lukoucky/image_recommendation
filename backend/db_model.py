@@ -25,22 +25,22 @@ def setup_db(app):
 class Image(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
-    feture_vector = db.Column(db.ARRAY(db.Float()))
+    feature_vector = db.Column(db.ARRAY(db.Float()))
 
-    def __init__(self, name, feture_vector):
+    def __init__(self, name, feature_vector):
         self.name = name
-        self.feture_vector = feture_vector
+        self.feature_vector = feature_vector
 
     def insert(self):
         db.session.add(self)
         db.session.commit()
 
     def __repr__(self):
-        return f'{self.name}[{self.feture_vector[0]}, {self.feture_vector[1]}, {self.feture_vector[2]}, ...]'
+        return f'{self.name}[{self.feature_vector[0]}, {self.feature_vector[1]}, {self.feature_vector[2]}, ...]'
 
 def database_initialization_sequence():
     db.create_all()
-    features = np.random.rand(81)
+    features = np.random.rand(81).tolist()
     test_rec = Image('test_img',features)
 
     db.session.add(test_rec)
