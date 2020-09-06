@@ -231,6 +231,10 @@ class Dataset:
         plt.show()
 
     def get_objects_on_image(self, image_name):
+        '''
+        :param image_name: Name of image for object search
+        :return: Dictionary where key is name of object on image and value it probablity 
+        '''
         objects = dict()
         feature = self.get_features_for_image(image_name)
         for category, score in enumerate(feature):

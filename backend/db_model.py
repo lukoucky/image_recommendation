@@ -7,6 +7,9 @@ db = SQLAlchemy()
 
 
 def setup_db(app):
+    '''
+    Set up db model and connect it with flask app
+    '''
     db.app = app
     db.init_app(app )
     dbstatus = False
@@ -23,6 +26,9 @@ def setup_db(app):
 
 
 class Image(db.Model):
+    '''
+    Model for Image in database
+    '''
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
     feature_vector = db.Column(db.ARRAY(db.Float()))
@@ -39,6 +45,9 @@ class Image(db.Model):
         return f'{self.name}[{self.feature_vector[0]}, {self.feature_vector[1]}, {self.feature_vector[2]}, ...]'
 
 def database_initialization_sequence():
+    '''
+    Initialize database
+    '''
     db.create_all()
     features = np.random.rand(81).tolist()
     test_rec = Image('test_img',features)
