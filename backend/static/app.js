@@ -21,12 +21,18 @@ $(function(){
             type:'POST',
             url: '/upload_file',
             data : formData,
+            beforeSend: function () { // Before we send the request, remove the .hidden class from the spinner and default to inline-block.
+                document.getElementById("overlay").style.display = "block";
+            },
             processData: false,
             contentType: false,
             success: function(response) {
                 console.log(response);
                 window.location.href = '/predict_similar/'+response.image_name;
-            }
+            },
+            complete: function () { // Set our complete callback, adding the .hidden class and hiding the spinner.
+                document.getElementById("overlay").style.display = "none";
+            },
         });
     };
 
