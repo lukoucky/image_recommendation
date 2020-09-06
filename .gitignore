@@ -8,7 +8,7 @@ backend/images/*.*
 !backend/images/.gitkeep
 backend/val2017/*.*
 backend/images_caltech/*.*
-*.pickle
+
 
 ### Flask ###
 instance/*

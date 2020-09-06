@@ -224,17 +224,6 @@ def get_feature_list():
 
     return (feature_list, names)
 
-def fill_database():
-    '''
-    Helper method to populate database with precomputed features saved to pickle
-    '''
-    feature_list = pickle.load(open('features_coco_segment.pickle', 'rb'))
-    names = pickle.load(open('imagenames_coco_segment.pickle', 'rb'))
-    for i, name in enumerate(names):
-        f_list = [float(v) for v in feature_list[i]]
-        img = Image(name, f_list)
-        img.insert()
-
 if __name__ == '__main__':
     print('Setting up model and dataset')
     model = InstanceSegmentationModel('mask_rcnn_coco.h5')

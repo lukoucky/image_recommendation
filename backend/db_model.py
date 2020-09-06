@@ -1,4 +1,5 @@
 import time
+import pickle
 import numpy as np
 from flask_sqlalchemy import SQLAlchemy
 
@@ -49,9 +50,15 @@ def database_initialization_sequence():
     Initialize database
     '''
     db.create_all()
-    features = np.random.rand(81).tolist()
-    test_rec = Image('test_img',features)
+    fill_database()
 
-    db.session.add(test_rec)
-    db.session.rollback()
-    db.session.commit()
+def fill_database():
+    '''
+    Helper method to populate database with precomputed features saved to pickle
+    '''
+    feature_list = pickle.load(open('features_coco_segment.pickle', 'rb'))
+    names = pickle.load(open('imagenames_coco_segment.pickle', 'rb'))
+    for i, name in enumerate(names):
+        f_list = [float(v) for v in feature_list[i]]
+        img = Image(name, f_list)
+        img.insert()
