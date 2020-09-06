@@ -1,4 +1,5 @@
 import os
+import time
 import numpy as np
 from flask import Flask, render_template, flash, redirect, request, url_for, send_from_directory, jsonify
 from db_model import setup_db, Image
@@ -7,6 +8,7 @@ from utils import is_image, get_all_images_in_dir
 from image_data import ImageData
 from instance_segmentation_model import InstanceSegmentationModel
 from dataset import Dataset
+import tensorflow as tf
 import random
 
 # Database access env variables
@@ -89,6 +91,7 @@ def upload_file():
     and stored in database.
     :return: JSON with name of image in backend database
     """
+    print('New upload here 22')
     file_object = request.files['file_to_upload']
     filename = secure_filename(file_object.filename)
     if is_image(filename):
@@ -99,9 +102,13 @@ def upload_file():
         with open(save_path, "r") as f:
             pass
 
-        print(f'Computing features for {save_path}')
-        # TODO: Prediction
-        features = model.predict(save_path)
+        graph = tf.compat.v1.get_default_graph()
+        with graph.as_default():
+            features = model.predict(save_path)
+
+        data.features.append(features)
+        data.image_names.append(save_path)
+        data.feature_dict[save_path] = features
         try:
             img = Image(save_path, features)
             img.insert()
@@ -134,7 +141,8 @@ def predict_similar(file_name):
     Returns webpage with similarity prediction for selected image
     '''
     images, objects = predict_similar_images(file_name)
-    return render_template('show_similar.html', imgs=get_all_images('images', images), new_img=f'/image/{file_name}', objects=objects)
+    img_url = f'/image/{os.path.basename(file_name)}'
+    return render_template('show_similar.html', imgs=get_all_images('images', images), new_img=img_url, objects=objects)
 
 
 @app.route('/predict_random_image', methods=['GET'])
@@ -156,8 +164,7 @@ def predict_similar_images(image_name):
     images = data.get_similar_images(image_name, MAX_IMAGES+1)
     if image_name in images:
         images.pop(image_name, None)
-    else:
-        images.pop(-1)
+
     return images, objects
 
 def prepare_features_to_db(dirpath):
@@ -175,7 +182,7 @@ def get_feature_list():
     feature_list = []
     names = []
     for image in Image.query.all():
-        feature_list.append(image.imagenet_fetures)
+        feature_list.append(image.feture_vector)
         names.append(image.name)
 
     return (feature_list, names)
@@ -184,5 +191,6 @@ if __name__ == '__main__':
     print('Setting up model and dataset')
     model = InstanceSegmentationModel('mask_rcnn_coco.h5')
     data = Dataset('coco_segment', '/home/backend/image', model)
+    data.load_features()
     print('Running Image Segmentation backend')
-    app.run(debug=True, host='0.0.0.0', port=5555)
+    app.run(debug=False, host='0.0.0.0', port=5555, threaded=False)
