@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from utils import is_image, get_all_images_in_dir
 from image_data import ImageData
 from instance_segmentation_model import InstanceSegmentationModel
+from sklearn.neighbors import NearestNeighbors
 from dataset import Dataset
 import tensorflow as tf
 import random
@@ -95,7 +96,8 @@ def upload_file():
     file_object = request.files['file_to_upload']
     filename = secure_filename(file_object.filename)
     if is_image(filename):
-        save_path = "{}/{}_{}".format(app.config["UPLOAD_FOLDER"], time.time(), filename)
+        image_name = "{}_{}".format(time.time(), filename)
+        save_path = "{}/{}".format(app.config["UPLOAD_FOLDER"], image_name)
         file_object.save(save_path)
 
         # open and close to update the access time.
@@ -106,19 +108,16 @@ def upload_file():
         with graph.as_default():
             features = model.predict(save_path)
 
-        data.features.append(features)
-        data.image_names.append(save_path)
-        data.feature_dict[save_path] = features
         try:
             f_list = [float(v) for v in features]
             print('Saving feature list', f_list)
             print(type(f_list[0]))
-            img = Image(save_path, f_list)
+            img = Image(image_name, f_list)
             img.insert()
         except Exception as e:
             print(e)
 
-        return jsonify({ 'image_name': save_path })
+        return jsonify({ 'image_name': image_name })
     else:
         # TODO: Inform about error
         return jsonify({ 'image_name': '/' })
@@ -130,7 +129,6 @@ def get_similar(file_name):
     :param filename: Name of image that is alreade processed in database
     :return: JSON with list of similar images and objects found on selected image
     '''
-    fill_database()
     images, objects = predict_similar_images(file_name)
     obj_dict = {}
     for obj in objects.keys():
@@ -164,25 +162,60 @@ def predict_similar_images(image_name):
     :param image_name: Name of image for prediction
     :return: Tuple with first parameter list of similar images and second objects on searched image
     '''
-    objects = data.get_objects_on_image(image_name)
-    images = data.get_similar_images(image_name, MAX_IMAGES+1)
+    objects = get_objects_on_image(image_name)
+    images = get_similar_images(image_name, MAX_IMAGES+1)
     if image_name in images:
         images.pop(image_name, None)
 
     return images, objects
 
-def prepare_features_to_db(dirpath):
-    imgs = get_all_images_in_dir(dirpath, True)
-    feature_list = []
-    for image in imgs:
-        features = predict_resnet50(image)
-        feature_list.append(features)
-        img = Image(image, features.tolist())
-        img.insert()
-    pickle.dump(feature_list, open('features-2.pickle', 'wb'))
-    pickle.dump(imgs, open('filenames-2.pickle','wb'))
+def get_objects_on_image(image_name):
+    '''
+    :param image_name: Name of image for object search
+    :return: Dictionary where key is name of object on image and value it probablity 
+    '''
+    objects = dict()
+
+    my_image = Image.query.filter(Image.name == image_name).one_or_none()
+    if my_image is None:
+        return objects
+
+    feature = my_image.feature_vector
+
+    for category, score in enumerate(feature):
+        if score > 0:
+            objects[model.categories[category]] = score
+    return objects
+
+def get_similar_images(image_name, n=10):
+        '''
+        For given image_name returns most simailar images in database.
+        :param image_name: Image name of searched image
+        :return: Dictionary where keys are the names of images and value are similarity
+                 score to original image
+        '''
+        similar: dict = {}
+
+        my_image = Image.query.filter(Image.name == image_name).one_or_none()
+        if my_image is None:
+            return similar
+
+        my_features = my_image.feature_vector
+
+        feature_list, names = get_feature_list()
+
+        neighbors = NearestNeighbors(n_neighbors=n, algorithm='brute', metric='euclidean').fit(feature_list)
+        distances, indices = neighbors.kneighbors([my_features])
+        
+        for i in range(len(distances[0])):
+            similar[names[indices[0][i]]] = distances[0][i]
+
+        return similar
 
 def get_feature_list():
+    '''
+    :return: Tuple where first item is list of features for all images and second item is list with image names
+    '''
     feature_list = []
     names = []
     for image in Image.query.all():
@@ -208,4 +241,4 @@ if __name__ == '__main__':
     data = Dataset('coco_segment', '/home/backend/image', model)
     data.load_features()
     print('Running Image Segmentation backend')
-    app.run(debug=True, host='0.0.0.0', port=5555, threaded=False)
+    app.run(debug=False, host='0.0.0.0', port=5555, threaded=False)
