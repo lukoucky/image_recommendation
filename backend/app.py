@@ -188,29 +188,29 @@ def get_objects_on_image(image_name):
     return objects
 
 def get_similar_images(image_name, n=10):
-        '''
-        For given image_name returns most simailar images in database.
-        :param image_name: Image name of searched image
-        :return: Dictionary where keys are the names of images and value are similarity
-                 score to original image
-        '''
-        similar: dict = {}
+    '''
+    For given image_name returns most simailar images in database.
+    :param image_name: Image name of searched image
+    :return: Dictionary where keys are the names of images and value are similarity
+             score to original image
+    '''
+    similar: dict = {}
 
-        my_image = Image.query.filter(Image.name == image_name).one_or_none()
-        if my_image is None:
-            return similar
-
-        my_features = my_image.feature_vector
-
-        feature_list, names = get_feature_list()
-
-        neighbors = NearestNeighbors(n_neighbors=n, algorithm='brute', metric='euclidean').fit(feature_list)
-        distances, indices = neighbors.kneighbors([my_features])
-        
-        for i in range(len(distances[0])):
-            similar[names[indices[0][i]]] = distances[0][i]
-
+    my_image = Image.query.filter(Image.name == image_name).one_or_none()
+    if my_image is None:
         return similar
+
+    my_features = my_image.feature_vector
+
+    feature_list, names = get_feature_list()
+
+    neighbors = NearestNeighbors(n_neighbors=n, algorithm='brute', metric='euclidean').fit(feature_list)
+    distances, indices = neighbors.kneighbors([my_features])
+    
+    for i in range(len(distances[0])):
+        similar[names[indices[0][i]]] = distances[0][i]
+
+    return similar
 
 def get_feature_list():
     '''
