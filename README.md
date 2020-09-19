@@ -1,4 +1,8 @@
-# Image Similarity
+# Image Recommendation
+
+Image recommendation service that uses [Mask_RCNN](https://github.com/matterport/Mask_RCNN) network to predict objects on input image and outputs most similar images from database with Nearest Neighbor search. 
+
+![Web page image](images/web_page_screen.png)
 
 The goal of this project was `to create a solution for finding the most similar content`. This broad assignment left huge space for personal inventions. I have chosen to implement system that outputs set of images similar to the image given as input. Recurrent neural network is used for similarity search. To present working solution this project contains backend Flask application that is connected to database with 5000 image from [COCO dataset](https://cocodataset.org/#home). This web app allows to search through the database, find similar images to random one from the database and also to upload new images to the database and see similar images from the database.
 
